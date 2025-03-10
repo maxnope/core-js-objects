@@ -130,8 +130,12 @@ function makeImmutable(obj) {
  *    makeWord({ a: [0, 1], b: [2, 3], c: [4, 5] }) => 'aabbcc'
  *    makeWord({ H:[0], e: [1], l: [2, 3, 8], o: [4, 6], W:[5], r:[7], d:[9]}) => 'HelloWorld'
  */
-function makeWord(/* lettersObject */) {
-  throw new Error('Not implemented');
+function makeWord(lettersObject) {
+  return Object.entries(lettersObject)
+    .flatMap(([letter, positions]) => positions.map((pos) => [pos, letter]))
+    .sort((a, b) => a[0] - b[0])
+    .map((item) => item[1])
+    .join('');
 }
 
 /**
@@ -148,8 +152,40 @@ function makeWord(/* lettersObject */) {
  *    sellTickets([25, 25, 50]) => true
  *    sellTickets([25, 100]) => false (The seller does not have enough money to give change.)
  */
-function sellTickets(/* queue */) {
-  throw new Error('Not implemented');
+function sellTickets(queue) {
+  const result = queue.reduce(
+    (state, bill) => {
+      if (!state.ok) return state;
+      switch (bill) {
+        case 25:
+          return { ...state, count25: state.count25 + 1 };
+        case 50:
+          if (state.count25 < 1) return { ...state, ok: false };
+          return {
+            count25: state.count25 - 1,
+            count50: state.count50 + 1,
+            ok: true,
+          };
+        case 100:
+          if (state.count50 >= 1 && state.count25 >= 1) {
+            return {
+              count25: state.count25 - 1,
+              count50: state.count50 - 1,
+              ok: true,
+            };
+          }
+          if (state.count25 >= 3) {
+            return { ...state, count25: state.count25 - 3 };
+          }
+          return { ...state, ok: false };
+        default:
+          return { ...state, ok: false };
+      }
+    },
+    { count25: 0, count50: 0, ok: true }
+  );
+
+  return result.ok;
 }
 
 /**
@@ -165,8 +201,13 @@ function sellTickets(/* queue */) {
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
+
+  this.getArea = () => {
+    return this.width * this.height;
+  };
 }
 
 /**
@@ -227,8 +268,14 @@ function fromJSON(proto, json) {
  *      { country: 'Russia',  city: 'Saint Petersburg' }
  *    ]
  */
-function sortCitiesArray(/* arr */) {
-  throw new Error('Not implemented');
+function sortCitiesArray(arr) {
+  return arr.sort((a, b) => {
+    const sameCountry = a.country.localeCompare(b.country);
+    if (sameCountry !== 0) {
+      return sameCountry;
+    }
+    return a.city.localeCompare(b.city);
+  });
 }
 
 /**
@@ -261,10 +308,17 @@ function sortCitiesArray(/* arr */) {
  *    "Poland" => ["Lodz"]
  *   }
  */
-function group(/* array, keySelector, valueSelector */) {
-  throw new Error('Not implemented');
+function group(array, keySelector, valueSelector) {
+  return array.reduce((multimap, element) => {
+    const key = keySelector(element);
+    const value = valueSelector(element);
+    if (!multimap.has(key)) {
+      multimap.set(key, []);
+    }
+    multimap.get(key).push(value);
+    return multimap;
+  }, new Map());
 }
-
 /**
  * Css selectors builder
  *
